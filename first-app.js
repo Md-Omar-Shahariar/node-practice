@@ -1,10 +1,10 @@
 const http = require("http");
-const fs = require("fs")
+const fs = require("fs");
 
 const server = http.createServer((req, res) => {
   const url = req.url;
 
-  const method = req.method
+  const method = req.method;
 
   if (url === "/") {
     res.write("<html>");
@@ -16,11 +16,22 @@ const server = http.createServer((req, res) => {
     return res.end();
   }
 
-  if(url === '/message' && method == 'POST'){
-    res.statusCode = 302
-    fs.writeFileSync("message.txt","Dummy Text")
-    res.setHeader('Location','/')
-    return res.end()
+  if (url === "/message" && method == "POST") {
+    const body = [];
+    req.on("data", (chunk) => {
+      body.push(chunk);
+      console.log(body, "Chunk");
+    });
+    req.on("end", () => {
+      const parserBody = Buffer.concat(body).toString();
+      console.log(parserBody, "Parsed data");
+      const message = parserBody.split("=")[1];
+      console.log(message, "Message");
+      fs.writeFileSync("message.txt", message);
+    });
+    res.statusCode = 302;
+    res.setHeader("Location", "/");
+    return res.end();
   }
   // process.exit()
   res.setHeader("Content-Type", "text/html");
